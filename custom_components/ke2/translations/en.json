@@ -1,0 +1,47 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "KE2 LDA",
+        "description": "Enter the LDA's **IP address** (not its hostname: the LDA redirects other names to KE2's cloud). Reading needs no login; the credentials are used for changing settings. Factory default is ke2admin / ke2admin.",
+        "data": {"host": "IP address", "username": "Username", "password": "Password"}
+      },
+      "reconfigure": {
+        "title": "KE2 LDA",
+        "data": {"host": "IP address", "username": "Username", "password": "Password"}
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach a KE2 LDA with controllers at that address.",
+      "invalid_auth": "The LDA rejected the username or password."
+    },
+    "abort": {
+      "already_configured": "This LDA is already configured.",
+      "reconfigure_successful": "Reconfigured.",
+      "unique_id_mismatch": "That address belongs to a different LDA."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "KE2 options",
+        "data": {
+          "scan_interval": "Poll interval (seconds)",
+          "advanced_setpoints": "Expose advanced settings (Modbus address, temperature units)"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_value": {
+      "name": "Set raw value",
+      "description": "Write any writable controller field, validated against the controller's limits. Use for values entities can't express, e.g. 24:00 to disable a custom defrost start time.",
+      "fields": {
+        "entity_id": {"name": "Entity", "description": "Any entity of the target controller."},
+        "category": {"name": "Category", "description": "Usually Setpoints."},
+        "field": {"name": "Field", "description": "Exact field name, e.g. AirTempDiff."},
+        "value": {"name": "Value", "description": "New value."}
+      }
+    }
+  }
+}

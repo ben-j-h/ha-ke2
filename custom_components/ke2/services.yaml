@@ -1,0 +1,21 @@
+set_value:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: ke2
+    category:
+      default: Setpoints
+      selector:
+        text:
+    field:
+      required: true
+      example: "Start Time of Defrost 1"
+      selector:
+        text:
+    value:
+      required: true
+      example: "24:00"
+      selector:
+        text:

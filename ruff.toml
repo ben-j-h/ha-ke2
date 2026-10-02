@@ -1,0 +1,13 @@
+# Lint config (CI runs `ruff check custom_components tests`).
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv"]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "ASYNC", "RUF"]
+ignore = [
+    "RUF012",    # mutable class attrs on HA entity descriptions are the norm
+    "B008",      # voluptuous / selector default calls in schemas
+    "ASYNC109",  # aiohttp ClientTimeout passthrough is deliberate
+]
+
