@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
@@ -18,6 +19,10 @@ if TYPE_CHECKING:
     from . import KE2ConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
+
+# Write confirmation: re-poll up to CONFIRM_ATTEMPTS times, CONFIRM_INTERVAL s apart (~30 s).
+CONFIRM_ATTEMPTS = 7
+CONFIRM_INTERVAL = 5
 
 
 class KE2Coordinator(DataUpdateCoordinator[dict[str, Controller]]):
@@ -62,18 +67,27 @@ class KE2Coordinator(DataUpdateCoordinator[dict[str, Controller]]):
             )
         except KE2Error as err:
             raise HomeAssistantError(f"KE2 write failed: {err}") from err
-        await self.async_refresh()
-        fresh = (self.data or {}).get(ctrl_key)
-        if fresh is None:
+        # The controller applies writes over Modbus asynchronously: a setpoint shows up
+        # within ~10 s, the clock ('Time of Day') can take longer. Re-poll until it does.
+        mismatched: dict[str, tuple[Any, Any]] = {}
+        for attempt in range(CONFIRM_ATTEMPTS):
+            if attempt:
+                await asyncio.sleep(CONFIRM_INTERVAL)
+            await self.async_refresh()
+            fresh = (self.data or {}).get(ctrl_key)
+            if fresh is None:
+                continue
+            mismatched = {
+                k: (v, fresh.value(category, k))
+                for k, v in sent.items()
+                if str(fresh.value(category, k)) != str(v)
+                and not _numeric_equal(fresh.value(category, k), v)
+            }
+            if not mismatched:
+                return
+        if not mismatched:
             raise HomeAssistantError("KE2 controller unavailable after write; not confirmed")
-        mismatched = {
-            k: (v, fresh.value(category, k))
-            for k, v in sent.items()
-            if str(fresh.value(category, k)) != str(v)
-            and not _numeric_equal(fresh.value(category, k), v)
-        }
-        if mismatched:
-            raise HomeAssistantError(f"KE2 write not confirmed (sent, read back): {mismatched}")
+        raise HomeAssistantError(f"KE2 write not confirmed (sent, read back): {mismatched}")
 
 
 def _numeric_equal(a: Any, b: Any) -> bool:

@@ -159,3 +159,16 @@ async def test_unload(hass: HomeAssistant, fake_lda, config_entry) -> None:
     await _setup(hass, config_entry)
     assert await hass.config_entries.async_unload(config_entry.entry_id)
     assert config_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_late_applied_write_is_confirmed(hass: HomeAssistant, fake_lda, config_entry) -> None:
+    """The controller clock applies seconds after the LDA says Success (seen live)."""
+    await _setup(hass, config_entry)
+    fake_lda.apply_after_polls = 3
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": "button.ke2_temp_com1_1_sync_controller_clock"},
+        blocking=True,
+    )
+    assert "Time of Day" in fake_lda.writes[-1]

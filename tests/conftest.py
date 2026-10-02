@@ -30,6 +30,11 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     return
 
 
+@pytest.fixture(autouse=True)
+def fast_confirm(monkeypatch):
+    monkeypatch.setattr("custom_components.ke2.coordinator.CONFIRM_INTERVAL", 0)
+
+
 class FakeLDA:
     """Serves GETs from captured samples; PUT /Setpoints mutates the state."""
 
@@ -39,18 +44,30 @@ class FakeLDA:
         self.writes: list[dict[str, Any]] = []
         self.write_ok = True
         self.online = True
+        self.apply_after_polls = 0  # simulate a controller that applies a write late
+        self._pending: dict[str, Any] = {}
+        self._polls_left = 0
 
     def install(self, mock: AiohttpClientMocker) -> None:
         async def get_all(method, url, data):
             if not self.online:
                 return AiohttpClientMockResponse(method, url, exc=TimeoutError())
+            if self._pending:
+                if self._polls_left <= 0:
+                    self.all[0]["Setpoints"].update(self._pending)
+                    self._pending = {}
+                self._polls_left -= 1
             return AiohttpClientMockResponse(method, url, json=copy.deepcopy(self.all))
 
         async def put_setpoints(method, url, data):
             self.writes.append(dict(data))
-            if self.write_ok:
+            ok = {"Status": 200, "Message": "Success", "Details": "Data Successfully written"}
+            if self.write_ok and self.apply_after_polls:
+                self._pending, self._polls_left = dict(data), self.apply_after_polls
+                body = ok
+            elif self.write_ok:
                 self.all[0]["Setpoints"].update(data)
-                body = {"Status": 200, "Message": "Success", "Details": "Data Successfully written"}
+                body = ok
             else:
                 body = {"Status": 500, "Message": "Failed"}
             return AiohttpClientMockResponse(method, url, json=body)
