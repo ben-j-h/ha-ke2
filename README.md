@@ -1,7 +1,7 @@
 # KE2 Therm — Home Assistant integration
 
 Local-polling integration for **KE2 Therm** refrigeration controllers (KE2 Temp,
-KE2 Low Temp, KE2 Adaptive, …) through the **KE2 LDA** (Local Device Adapter) network
+KE2 Low Temp, KE2 Adaptive, …) through the **KE2 LDA** (Local Area Dashboard and Alarms) network
 box. It talks to the LDA's JSON API on your LAN: no cloud, no KE2 account.
 
 Built on [`pyke2`](https://github.com/ben-j-h/pyke2). The reverse-engineering notes are

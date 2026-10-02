@@ -94,7 +94,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: KE2ConfigEntry) -> bool:
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, entry.unique_id)},
         manufacturer=MANUFACTURER,
-        model="LDA (Local Device Adapter)",
+        model="LDA (Local Area Dashboard and Alarms)",
         name=f"KE2 LDA {entry.unique_id}",
         sw_version=version.get("Version"),
         configuration_url=f"http://{lda.host}/",
