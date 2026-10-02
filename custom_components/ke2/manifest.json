@@ -8,6 +8,6 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/ben-j-h/ha-ke2/issues",
   "loggers": ["pyke2"],
-  "requirements": ["pyke2 @ git+https://github.com/ben-j-h/pyke2.git@v0.1.0"],
+  "requirements": ["pyke2@git+https://github.com/ben-j-h/pyke2.git@v0.1.0"],
   "version": "0.1.0"
 }
